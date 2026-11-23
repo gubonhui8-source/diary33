@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#4b4fa8">
+<title>나의 일기장</title>
+
+<!-- PWA Manifest Data URI -->
+<link rel="manifest" href='data:application/manifest+json,{"name":"나의 일기장","short_name":"일기장","start_url":".","display":"standalone","background_color":"#eef0f6","theme_color":"#4b4fa8","icons":[{"src":"data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>","sizes":"192x192 512x512","type":"image/svg+xml"}]}'>
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=Nanum+Myeongjo:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef0f6;--surface:#fff;--ink:#1d2340;--sub:#66709a;--line:#d9ddec;--accent:#4b4fa8;--accentink:#fff;--soft:#e3e6f6;--warn:#c4453a;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#12152a;--surface:#1b2038;--ink:#e8eafb;--sub:#9aa3d0;--line:#2c3354;--accent:#9ba0f5;--accentink:#12152a;--soft:#262c4d;--warn:#f08b7e}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans KR",system-ui,-apple-system,sans-serif;line-height:1.5;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+main{max-width:680px;margin:0 auto;padding:16px}
+button,input,textarea{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header{display:flex;justify-content:space-between;align-items:baseline;margin:6px 0 14px}
+header h1{margin:0;font-size:1.3rem}
+#stats{color:var(--sub);font-size:.88rem}
+section{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.nav b{font-size:1.02rem}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:50%;width:36px;height:36px;cursor:pointer}
+.pill{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:5px 12px;cursor:pointer;font-size:.85rem}
+.pill[aria-pressed="true"]{background:var(--warn);border-color:var(--warn);color:#fff}
+.wk,#grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.wk span{font-size:.78rem;color:var(--sub);padding:4px 0}
+.d{aspect-ratio:1;border:0;border-radius:10px;background:transparent;cursor:pointer;position:relative;font-size:.92rem}
+.d.today{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.d.has::after{content:"";position:absolute;left:50%;bottom:5px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--accent)}
+.d.sel{background:var(--accent);color:var(--accentink)}
+.d.sel::after{background:var(--accentink)}
+#dlabel{font-weight:700;font-size:1.05rem}
+.moods{display:flex;gap:6px;margin:10px 0}
+.moods button{flex:1;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:6px 0;cursor:pointer;font-size:1.4rem}
+.moods button[aria-pressed="true"]{background:var(--soft);border-color:var(--accent)}
+input[type=text],input[type=search]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+#title{font-weight:700;margin-bottom:8px}
+textarea{width:100%;min-height:220px;resize:vertical;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);font-family:"Nanum Myeongjo",Batang,serif;font-size:1.05rem;line-height:1.9}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:.85rem;color:var(--sub);flex-wrap:wrap;gap:8px}
+.del{border:0;background:none;color:var(--warn);cursor:pointer;font-size:.85rem}
+.row{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer;width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left}
+.row:last-child{border-bottom:0}
+.row .dt{min-width:52px;color:var(--sub);font-size:.85rem}
+.row .tx{flex:1;min-width:0}
+.row .tx b,.row .tx span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .tx span{color:var(--sub);font-size:.88rem}
+.empty{text-align:center;color:var(--sub);padding:18px 0;font-size:.92rem}
+.backup-bar{display:flex;gap:8px;justify-content:flex-end;margin-bottom:10px}
+.backup-btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 10px;font-size:.8rem;cursor:pointer}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>나의 일기장</h1>
+    <span id="stats"></span>
+  </header>
+
+  <div class="backup-bar">
+    <button class="backup-btn" id="btnExport">📥 JSON 백업</button>
+    <button class="backup-btn" id="btnImport">📤 JSON 복원</button>
+    <input type="file" id="fileInput" accept=".json" style="display:none">
+  </div>
+
+  <section>
+    <div class="nav">
+      <button class="ib" id="pm" aria-label="이전 달">‹</button>
+      <b id="mtitle"></b>
+      <button class="ib" id="nm" aria-label="다음 달">›</button>
+    </div>
+    <div class="wk"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+    <div id="grid"></div>
+  </section>
+
+  <section>
+    <div class="nav">
+      <button class="ib" id="pd" aria-label="전날">‹</button>
+      <span id="dlabel"></span>
+      <button class="ib" id="nd" aria-label="다음날">›</button>
+    </div>
+    <div style="text-align:center"><button class="pill" id="today">오늘로 이동</button></div>
+    <div class="moods" id="moods" role="group" aria-label="오늘의 기분"></div>
+    <input type="text" id="title" placeholder="제목 (선택)" aria-label="제목">
+    <textarea id="body" placeholder="오늘은 어떤 하루였나요?" aria-label="일기 내용"></textarea>
+    <div class="foot">
+      <button class="pill" id="mic" aria-pressed="false">🎤 음성으로 쓰기</button>
+      <span id="status"></span>
+      <button class="del" id="delete">이 날 일기 삭제</button>
+    </div>
+  </section>
+
+  <section>
+    <h2 style="font-size:1rem;margin:0 0 10px">지난 일기</h2>
+    <input type="search" id="q" placeholder="일기 검색" aria-label="일기 검색" style="margin-bottom:6px">
+    <div id="list"></div>
+  </section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,"0");
+const fmt=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parse=s=>new Date(s+"T00:00:00");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const MOODS=["😊","😌","😐","😢","😠"],MN=["좋음","평온","보통","슬픔","화남"];
+
+let E={},sel=fmt(new Date()),vm=parse(sel),mood="",timer=null,armed=false;
+vm.setDate(1);
+
+function load(){
+  try{ E=JSON.parse(localStorage.getItem("diary_entries")||"{}")||{} }catch(e){ E={} }
+}
+function persist(){
+  try{ localStorage.setItem("diary_entries",JSON.stringify(E)) }catch(e){}
+}
+
+function cal(){
+  const y=vm.getFullYear(),m=vm.getMonth(),first=new Date(y,m,1).getDay(),n=new Date(y,m+1,0).getDate(),t=fmt(new Date());
+  $("mtitle").textContent=y+"년 "+(m+1)+"월";
+  let h="";for(let i=0;i<first;i++)h+="<span></span>";
+  for(let d=1;d<=n;d++){
+    const s=y+"-"+pad(m+1)+"-"+pad(d);
+    h+=`<button class="d${s===sel?" sel":""}${s===t?" today":""}${E[s]?" has":""}" data-d="${s}" aria-label="${m+1}월 ${d}일">${d}</button>`;
+  }
+  $("grid").innerHTML=h;
+}
+function renderMood(){
+  $("moods").innerHTML=MOODS.map((e,i)=>`<button data-m="${e}" aria-pressed="${mood===e}" aria-label="${MN[i]}">${e}</button>`).join("");
+}
+function stats(){
+  let st=0;const d=new Date();if(!E[fmt(d)])d.setDate(d.getDate()-1);
+  while(E[fmt(d)]){st++;d.setDate(d.getDate()-1)}
+  $("stats").textContent=Object.keys(E).length+"편 · 연속 "+st+"일";
+}
+function list(){
+  const q=$("q").value.trim().toLowerCase();
+  const rows=Object.keys(E).sort().reverse().filter(s=>!q||((E[s].title||"")+" "+(E[s].body||"")).toLowerCase().includes(q)).slice(0,40);
+  $("list").innerHTML=rows.length?rows.map(s=>{
+    const e=E[s],d=parse(s),line=(e.body||"").split("\n").find(x=>x.trim())||"";
+    return `<button class="row" data-d="${s}"><span class="dt">${d.getMonth()+1}월 ${d.getDate()}일</span><span>${e.mood||"·"}</span><span class="tx"><b>${esc(e.title||line.slice(0,40)||"(내용 없음)")}</b>${e.title?`<span>${esc(line.slice(0,60))}</span>`:""}</span></button>`;
+  }).join(""):`<div class="empty">${q?"검색 결과가 없어요.":"아직 쓴 일기가 없어요. 오늘 하루를 적어 보세요."}</div>`;
+}
+function commit(){
+  timer=null;const t=$("title").value,b=$("body").value;
+  if(!t.trim()&&!b.trim()&&!mood)delete E[sel];else E[sel]={mood,title:t,body:b,t:Date.now()};
+  persist();$("status").textContent="저장됨 · "+b.length+"자";cal();list();stats();
+}
+function flush(){if(timer){clearTimeout(timer);commit()}}
+function queue(){$("status").textContent="저장 중…";clearTimeout(timer);timer=setTimeout(commit,500)}
+
+function openDay(s){
+  flush();sel=s;const d=parse(s),e=E[s]||{};
+  vm=new Date(d.getFullYear(),d.getMonth(),1);mood=e.mood||"";armed=false;
+  $("title").value=e.title||"";$("body").value=e.body||"";
+  $("dlabel").textContent=d.getFullYear()+"년 "+(d.getMonth()+1)+"월 "+d.getDate()+"일 "+"일월화수목금토"[d.getDay()]+"요일";
+  $("status").textContent=e.body?e.body.length+"자":"";$("delete").textContent="이 날 일기 삭제";
+  renderMood();cal();list();stats();
+}
+const shift=n=>{const d=parse(sel);d.setDate(d.getDate()+n);openDay(fmt(d))};
+
+$("grid").onclick=e=>{const b=e.target.closest("[data-d]");if(b)openDay(b.dataset.d)};
+$("list").onclick=e=>{const b=e.target.closest("[data-d]");if(b){openDay(b.dataset.d);$("body").scrollIntoView({behavior:"smooth",block:"center"})}};
+$("moods").onclick=e=>{const b=e.target.closest("[data-m]");if(!b)return;mood=mood===b.dataset.m?"":b.dataset.m;renderMood();queue()};
+$("title").oninput=queue;$("body").oninput=queue;$("q").oninput=list;
+$("pm").onclick=()=>{vm.setMonth(vm.getMonth()-1);cal()};
+$("nm").onclick=()=>{vm.setMonth(vm.getMonth()+1);cal()};
+$("pd").onclick=()=>shift(-1);$("nd").onclick=()=>shift(1);
+$("today").onclick=()=>openDay(fmt(new Date()));
+$("delete").onclick=()=>{
+  if(!E[sel]&&!$("body").value&&!$("title").value&&!mood)return;
+  if(!armed){armed=true;$("delete").textContent="한 번 더 누르면 삭제돼요";return}
+  clearTimeout(timer);timer=null;delete E[sel];persist();openDay(sel);
+};
+
+// --- JSON 백업 및 복원 기능 ---
+$("btnExport").onclick=()=>{
+  const blob=new Blob([JSON.stringify(E,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`diary_backup_${fmt(new Date())}.json`;
+  a.click();
+};
+$("btnImport").onclick=()=>$("fileInput").click();
+$("fileInput").onchange=e=>{
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const imported=JSON.parse(ev.target.result);
+      if(typeof imported==="object"&&imported!==null){
+        E=Object.assign({},E,imported);
+        persist();openDay(sel);
+        alert("백업 파일의 일기를 성공적으로 불러왔습니다!");
+      }
+    }catch(err){alert("올바른 JSON 백업 파일이 아닙니다.")}
+  };
+  reader.readAsText(file);
+};
+
+// --- 음성 인식 (STT) ---
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null,wantMic=false;
+function setMic(on){$("mic").setAttribute("aria-pressed",on);$("mic").textContent=on?"⏹ 듣는 중 (누르면 멈춰요)":"🎤 음성으로 쓰기"}
+function addText(t){
+  const ta=$("body"),v=ta.value,p=Math.min(ta.selectionEnd,v.length);
+  const pre=v.slice(0,p),post=v.slice(p),sep=pre&&!/\s$/.test(pre)?" ":"";
+  const head=pre+sep+t.trim();
+  ta.value=head+post;ta.setSelectionRange(head.length,head.length);queue();
+}
+function stopMic(){wantMic=false;try{rec&&rec.stop()}catch(e){}setMic(false)}
+function startMic(){
+  if(!SR){$("status").textContent="음성 인식이 지원되지 않는 환경입니다.";return}
+  rec=new SR();rec.lang="ko-KR";rec.continuous=true;rec.interimResults=true;
+  rec.onresult=e=>{
+    let interim="";
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const r=e.results[i];
+      if(r.isFinal)addText(r[0].transcript);else interim+=r[0].transcript;
+    }
+    if(interim)$("status").textContent="인식 중: "+interim;
+  };
+  rec.onerror=()=>{stopMic()};
+  rec.onend=()=>{if(wantMic){try{rec.start()}catch(e){stopMic()}}else setMic(false)};
+  try{rec.start();wantMic=true;setMic(true);$("status").textContent="말씀해 보세요."}catch(e){stopMic()}
+}
+$("mic").onclick=()=>wantMic?stopMic():startMic();
+window.addEventListener("pagehide",()=>{stopMic();flush()});
+
+load();openDay(sel);
+</script>
+</body>
+</html>
